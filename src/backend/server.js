@@ -32,7 +32,8 @@ app.use('/api', authRoutes);
 require('dotenv').config();  // โหลดค่าใน .env
 
 
-const PORT = 5000;
-server.listen(PORT, () => {
-  console.log(`🚀 Server + WebSocket running at http://localhost:${PORT}`);
+const port = process.env.PORT || 5000;
+app.listen(port, () => {
+  console.log(`🚀 Server is running on port ${port}`);
 });
+
