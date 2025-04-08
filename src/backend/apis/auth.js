@@ -4,6 +4,9 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY || 'default-secret-key';
+
+
 
 // ✅ สมัครสมาชิก
 router.post('/register', async (req, res) => {
@@ -45,12 +48,13 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
+
     // สร้าง JWT token หลังจาก login สำเร็จ
-    const token = jwt.sign(
-      { id: user.id, username: user.username, role: user.role },
-      'your-secret-key', // Secret key ที่ใช้ในการเข้ารหัส token
-      { expiresIn: '1h' } // กำหนดเวลาให้หมดอายุใน 1 ชั่วโมง
-    );
+const token = jwt.sign(
+  { id: user.id, username: user.username, role: user.role },
+  JWT_SECRET_KEY,  // ใช้จาก .env
+  { expiresIn: '1h' }
+);
 
     res.json({
       message: 'Login success',
