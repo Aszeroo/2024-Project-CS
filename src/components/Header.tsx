@@ -1,22 +1,33 @@
 import { Building2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-
+import { Dropdown, Menu } from 'antd';
+import { DownOutlined, UserOutlined } from '@ant-design/icons'; // เพิ่มไอคอน UserOutlined
 
 const Header = () => {
   const navigate = useNavigate();
   const [userRole, setUserRole] = useState<'USER' | 'ADMIN' | 'GUEST'>('GUEST');
+  const [userName, setUserName] = useState<string>(''); // เพิ่มการเก็บชื่อผู้ใช้
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     setUserRole(user?.role || 'GUEST');
+    setUserName(user?.username || ''); // เก็บชื่อผู้ใช้
   }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('user');
     navigate('/login');
   };
+
+  // สร้างเมนูสำหรับ dropdown
+  const menu = (
+    <Menu>
+      <Menu.Item key="1" onClick={handleLogout} className="text-red-600 hover:text-red-800">
+        ออกจากระบบ
+      </Menu.Item>
+    </Menu>
+  );
 
   return (
     <header className="bg-white shadow-lg border-b border-purple-100">
@@ -30,14 +41,11 @@ const Header = () => {
           </div>
 
           <nav className="flex space-x-6 items-center">
-          <a href="/rooms" className="text-gray-700 hover:text-purple-600 font-medium">ห้องพัก</a>
+            <a href="/rooms" className="text-gray-700 hover:text-purple-600 font-medium">ห้องพัก</a>
             {userRole === 'USER' && (
-                
-                    <a href="/my-bookings" className="text-gray-700 hover:text-purple-600 font-medium">การจองของฉัน</a>
-              
+              <a href="/my-bookings" className="text-gray-700 hover:text-purple-600 font-medium">การจองของฉัน</a>
             )}
-            
-          
+
             {userRole === 'ADMIN' && (
               <>
                 <button onClick={() => navigate('/admin/editrooms')} className="text-gray-700 hover:text-purple-600 font-medium">จัดการห้อง</button>
@@ -46,8 +54,14 @@ const Header = () => {
               </>
             )}
 
+            {/* แสดงชื่อผู้ใช้ใน header พร้อม Dropdown และไอคอนผู้ใช้ */}
             {userRole !== 'GUEST' && (
-              <button onClick={handleLogout} className="text-red-600 hover:text-red-800 font-medium">ออกจากระบบ</button>
+              <Dropdown overlay={menu} trigger={['click']}>
+                <span className="text-gray-700 font-medium cursor-pointer flex items-center">
+                  <UserOutlined className="mr-2" /> {/* ไอคอนผู้ใช้ */}
+                  {userName} <DownOutlined />
+                </span>
+              </Dropdown>
             )}
           </nav>
         </div>

@@ -3,7 +3,6 @@ import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import { message } from 'antd';
 import Header from './Header';
-import { encode, decode } from 'base-64';  // ใช้ base-64
 
 const BookingForm = () => {
   const { roomId } = useParams();
@@ -58,18 +57,19 @@ const BookingForm = () => {
       return;
     }
   
-    const encodedData = {
-      name: encode(formData.name),
-      phone: encode(formData.phone),
-      date: encode(formData.date),
-      roomNumber: encode(roomNumber),
+    const data = {
+      name: formData.name,
+      phone: formData.phone,
+      date: formData.date,
+      roomNumber: roomNumber,
       userId: user.id,
     };
     
     try {
       // ส่งข้อมูลไปที่ API เพื่อจองห้อง
-      await axios.post('http://localhost:5000/api/bookings', encodedData); // Ensure using the correct backend URL
+      await axios.post('http://localhost:5000/api/bookings', data); // Ensure using the correct backend URL
       message.success('✅ จองห้องสำเร็จแล้ว');
+      navigate('/my-bookings');  // Redirect to the user's bookings page after successful booking
     } catch (err) {
       console.error(err);
       message.error('❌ เกิดข้อผิดพลาดในการจอง');

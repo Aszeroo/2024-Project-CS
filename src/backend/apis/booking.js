@@ -3,86 +3,57 @@ const { PrismaClient } = require('@prisma/client');
 const router = express.Router();
 const prisma = new PrismaClient();
 const authenticateToken = require('../middleware/authenticateToken');
-const base64 = require('base-64');
 
-// ฟังก์ชันเพื่อ decode ข้อมูลจาก Base64
-function decodeBase64(encodedData) {
-  return {
-    name: base64.decode(encodedData.name),
-    phone: base64.decode(encodedData.phone),
-    date: base64.decode(encodedData.date),
-    roomNumber: base64.decode(encodedData.roomNumber),
-  };
-}
-
-// ✅ Create booking (encode/decode)
-
+// ✅ Create booking (no encode/decode)
 router.post('/bookings', async (req, res) => {
   try {
-    console.log(req.body); // ตรวจสอบข้อมูลที่ส่งมาจาก frontend
     const { name, phone, date, roomNumber, userId } = req.body;
-
-    // ถอดรหัสข้อมูลที่ส่งมาจาก frontend
-    const decodedName = base64.decode(name);
-    const decodedPhone = base64.decode(phone);
-    const decodedDate = base64.decode(date);
-    const decodedRoomNumber = base64.decode(roomNumber);
 
     // ตรวจสอบข้อมูล userId
     if (!userId) {
       return res.status(400).json({ error: 'โปรดระบุ userId' });
     }
 
-    const room = await prisma.room.findUnique({ where: { number: decodedRoomNumber } });
+    // ตรวจสอบห้องในระบบ
+    const room = await prisma.room.findUnique({ where: { number: roomNumber } });
     if (!room) return res.status(404).json({ error: 'ไม่พบห้องนี้ในระบบ' });
 
-    const bookingDate = new Date(decodedDate);
+    const bookingDate = new Date(date);
 
+    // บันทึกข้อมูลการจอง
     const booking = await prisma.booking.create({
       data: {
-        name: decodedName,
-        phone: decodedPhone,
+        name: name,  // เก็บข้อมูลที่ไม่เข้ารหัส
+        phone: phone,
         date: bookingDate,
-        roomNumber: decodedRoomNumber,
+        roomNumber: roomNumber,
         userId: userId,
       },
     });
 
+    // อัพเดตสถานะห้องให้เป็น 'occupied'
     await prisma.room.update({
-      where: { number: decodedRoomNumber },
+      where: { number: roomNumber },
       data: { status: 'occupied' },
     });
 
     res.status(201).json(booking);
   } catch (err) {
-    console.error('❌ Error:', err); // เพิ่มบันทึก error
+    console.error('❌ Error:', err);  // เพิ่มบันทึก error
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-
-
-
-
-
-
-// ✅ Get all bookings (no decode)
+// ✅ Get all bookings (no encode/decode)
 router.get('/bookings', async (req, res) => {
   try {
+    console.log("Fetching bookings...");
     const bookings = await prisma.booking.findMany({ orderBy: { date: 'desc' } });
-    
-    // decode ข้อมูลก่อนส่งไปยัง frontend
-    const decodedBookings = bookings.map(booking => ({
-      ...booking,
-      name: base64.decode(booking.name),
-      phone: base64.decode(booking.phone),
-      date: base64.decode(booking.date),
-      roomNumber: base64.decode(booking.roomNumber),
-    }));
+    console.log("Bookings fetched:", bookings);
 
-    res.json(decodedBookings);  // ส่งข้อมูล decoded กลับไป
+    res.json(bookings);  // ส่งข้อมูลปกติที่ไม่ได้เข้ารหัส
   } catch (err) {
-    console.error(err);
+    console.error("Error fetching bookings:", err);
     res.status(500).json({ error: 'Failed to fetch bookings' });
   }
 });
@@ -114,15 +85,10 @@ router.delete('/bookings/:id', async (req, res) => {
 // ✅ Get booking stats (ยอดการจองทั้งหมด, ห้องที่ไม่ว่าง, ห้องที่ว่าง)
 router.get('/bookings/stats', async (req, res) => {
   try {
-    // สรุปยอดการจองทั้งหมด
     const totalBookings = await prisma.booking.count();
-    
-    // สรุปห้องที่ไม่ว่าง
     const occupiedRooms = await prisma.room.count({
       where: { status: 'occupied' }
     });
-
-    // สรุปห้องที่ว่าง
     const availableRooms = await prisma.room.count({
       where: { status: 'available' }
     });
@@ -173,9 +139,7 @@ router.get('/bookings/statistics/monthly', async (req, res) => {
   }
 });
 
-// เพิ่มเส้นทางนี้ใน backend ของคุณ
-// เพิ่มเส้นทางนี้ใน backend ของคุณ
-// ใช้ middleware authenticateToken
+// Get user's bookings (if logged in)
 router.get('/bookings/my', authenticateToken, async (req, res) => {
   const userId = req.userId;
 
@@ -194,9 +158,6 @@ router.get('/bookings/my', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'ไม่สามารถดึงข้อมูลการจอง' });
   }
 });
-
-
-
 
 // ยกเลิกการจอง
 router.delete('/bookings/:id', async (req, res) => {
