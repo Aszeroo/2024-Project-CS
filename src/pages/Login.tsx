@@ -3,12 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { message, Spin } from 'antd';
 
-interface Props {
-  onLogin?: (role: 'user' | 'admin') => void;
-  onGoToSignUp?: () => void;
-}
-
-const Login: React.FC<Props> = ({ onLogin, onGoToSignUp }) => {
+const Login: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -24,16 +19,14 @@ const Login: React.FC<Props> = ({ onLogin, onGoToSignUp }) => {
       });
 
       const user = res.data.user;
-      // เก็บข้อมูลผู้ใช้ลง localStorage
-      localStorage.setItem('user', JSON.stringify(user)); 
-      localStorage.setItem('userId', user.userId); 
+      // เก็บข้อมูลผู้ใช้และ token ลงใน localStorage
+      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('userId', user.userId);
       localStorage.setItem('token', user.token); // เก็บ token เพื่อใช้งานใน API requests ต่อไป
 
       message.success('เข้าสู่ระบบสำเร็จ');
 
-      // หน่วงเวลาแสดง loading ก่อนเข้าเว็บ
       setTimeout(() => {
-        onLogin?.(user.role); // เรียก onLogin callback (ถ้ามี)
         navigate('/'); // เปลี่ยนเส้นทางไปยังหน้า Home หรือหน้า Dashboard
       }, 1000);
     } catch (err: any) {
@@ -70,14 +63,6 @@ const Login: React.FC<Props> = ({ onLogin, onGoToSignUp }) => {
             disabled={loading}
           >
             เข้าสู่ระบบ
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate('/register')} // ✅ ตรงไปหน้า /register
-            className="w-full bg-gray-300 text-gray-700 py-2 rounded-xl hover:bg-gray-400 mt-2"
-            disabled={loading}
-          >
-            สมัครสมาชิก
           </button>
         </form>
       </Spin>

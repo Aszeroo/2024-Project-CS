@@ -18,15 +18,11 @@ function MyBookings() {
   const fetchMyBookings = async () => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');  // ดึงข้อมูล user จาก localStorage
     
-    // ตรวจสอบว่า user มีค่าหรือไม่
-    console.log(localStorage.getItem('user'));  // ตรวจสอบข้อมูลทั้งหมดใน localStorage
-    console.log('Token:', user.token);  // ตรวจสอบค่า token ที่เก็บใน user
-
     if (!user || !user.token) {
       message.error('กรุณาล็อกอิน');
       return;
     }
-  
+
     try {
       const res = await axios.get<Booking[]>('/api/bookings/my', {
         headers: {
