@@ -59,10 +59,18 @@ const Login: React.FC = () => {
           />
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700"
+            className="w-full bg-green-300 text-white py-3 rounded-xl hover:bg-green-500"
             disabled={loading}
           >
             เข้าสู่ระบบ
+          </button>
+          <button
+            type="button"
+            className="w-full bg-orange-300 text-white py-3 rounded-xl hover:bg-orange-500"
+            disabled={loading}
+            onClick={() => navigate('/register')} // เพิ่มการไปยังหน้า Register
+          >
+            สมัครสมาชิก
           </button>
         </form>
       </Spin>

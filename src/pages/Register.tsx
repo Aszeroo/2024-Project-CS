@@ -66,10 +66,18 @@ const Register: React.FC<Props> = ({ onSignUp }) => {
           />
           <button
             type="submit"
-            className="w-full bg-green-600 text-white py-3 rounded-xl hover:bg-green-700"
+            className="w-full bg-green-300 text-white py-3 rounded-xl hover:bg-green-500"
             disabled={loading}
           >
             สมัครสมาชิก
+          </button>
+          <button
+            type="button"
+            className="w-full bg-orange-300 text-white py-3 rounded-xl hover:bg-orange-500"
+            disabled={loading}
+            onClick={() => navigate('/login')} // เพิ่มการไปยังหน้า Register
+          >
+            กลับสู่เข้าสู่ระบบ
           </button>
         </form>
       </Spin>
